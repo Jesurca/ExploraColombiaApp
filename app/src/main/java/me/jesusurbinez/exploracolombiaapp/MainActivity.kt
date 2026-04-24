@@ -21,18 +21,44 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val myNavController = rememberNavController()
-            NavHost(
-                navController = myNavController,
-                startDestination = "login",
-                modifier = Modifier.fillMaxSize()
-            )
-            {
-                composable(route = "login") {
-                    LoginScreen(onLoginSuccess = {}, onNavigateToRegister = {})
-                }
-                composable(route = "register") {
-                    RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {})
+            ExploraColombiaAppTheme {
+                val myNavController = rememberNavController()
+
+                NavHost(
+                    navController = myNavController,
+                    startDestination = "login",
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    composable(route = "login") {
+                        LoginScreen(
+                            onLoginSuccess = {
+                                myNavController.navigate("main") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            },
+                            onNavigateToRegister = {
+                                myNavController.navigate("register")
+                            }
+                        )
+                    }
+                    composable(route = "register") {
+                        RegisterScreen(
+                            onRegisterSuccess = {
+                                myNavController.navigate("main") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            },
+                            onNavigateToLogin = {
+                                myNavController.navigate("login")
+                            },
+                            onBackClick = {
+                                myNavController.popBackStack()
+                            }
+                        )
+                    }
+                    composable(route = "main") {
+                        MainScreen()
+                    }
                 }
             }
         }
