@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import me.jesusurbinez.exploracolombiaapp.ui.theme.ExploraColombiaAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,9 +21,18 @@ class MainActivity : ComponentActivity() {
             ExploraColombiaAppTheme {
                 val myNavController = rememberNavController()
 
+                var startDestination = "login"
+
+                val auth = Firebase.auth
+                if (auth.currentUser ==null){
+                    startDestination="login"
+                }else{
+                    startDestination="main"
+                }
+
                 NavHost(
                     navController = myNavController,
-                    startDestination = "login",
+                    startDestination = startDestination,
                     modifier = Modifier.fillMaxSize()
                 ) {
                     composable(route = "login") {
