@@ -1,4 +1,5 @@
 package me.jesusurbinez.exploracolombiaapp
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -30,6 +31,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.auth
 import com.google.firebase.auth.userProfileChangeRequest
 import me.jesusurbinez.exploracolombiaapp.ui.theme.ExploraColombiaAppTheme
@@ -79,7 +83,7 @@ fun RegisterScreen(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 text = "Explorando Colombia",
                 color = primaryOrange,
@@ -106,15 +110,6 @@ fun RegisterScreen(
                     .align(Alignment.Start)
             )
 
-            errorMessage?.let {
-                Text(
-                    text = it,
-                    color = Color.Red,
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
             Spacer(modifier = Modifier.height(32.dp))
 
             Column(modifier = Modifier.fillMaxWidth()) {
@@ -124,7 +119,8 @@ fun RegisterScreen(
                     onValueChange = { name = it },
                     placeholder = "Tu nombre",
                     leadingIcon = Icons.Default.Person,
-                    inputBg = inputBg
+                    inputBg = inputBg,
+                    cursorColor = primaryOrange
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -135,7 +131,8 @@ fun RegisterScreen(
                     onValueChange = { email = it },
                     placeholder = "hola@ejemplo.com",
                     leadingIcon = Icons.Default.Email,
-                    inputBg = inputBg
+                    inputBg = inputBg,
+                    cursorColor = primaryOrange
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -147,7 +144,8 @@ fun RegisterScreen(
                     placeholder = "........",
                     leadingIcon = Icons.Default.Lock,
                     inputBg = inputBg,
-                    isPassword = true
+                    isPassword = true,
+                    cursorColor = primaryOrange
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -159,7 +157,8 @@ fun RegisterScreen(
                     placeholder = "........",
                     leadingIcon = Icons.Default.Refresh,
                     inputBg = inputBg,
-                    isPassword = true
+                    isPassword = true,
+                    cursorColor = primaryOrange
                 )
             }
 
@@ -177,7 +176,12 @@ fun RegisterScreen(
                 Text(
                     text = buildAnnotatedString {
                         append("Acepto los ")
-                        withStyle(style = SpanStyle(color = primaryOrange, fontWeight = FontWeight.Bold)) {
+                        withStyle(
+                            style = SpanStyle(
+                                color = primaryOrange,
+                                fontWeight = FontWeight.Bold
+                            )
+                        ) {
                             append("términos y condiciones")
                         }
                         append(" así como el tratamiento de datos personales.")
@@ -188,16 +192,19 @@ fun RegisterScreen(
                 )
             }
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Único bloque de error antes del botón
             errorMessage?.let {
                 Text(
                     text = it,
                     color = Color.Red,
                     fontSize = 13.sp,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier
+                        .padding(bottom = 16.dp)
+                        .align(Alignment.Start)
                 )
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
 
             Button(
                 onClick = {
@@ -230,12 +237,18 @@ fun RegisterScreen(
                                         if (profileTask.isSuccessful) {
                                             onRegisterSuccess()
                                         } else {
-                                            errorMessage = "Error al actualizar perfil: ${profileTask.exception?.message}"
+                                            errorMessage =
+                                                "Error al actualizar perfil: ${profileTask.exception?.message}"
                                         }
                                     }
                             } else {
                                 isLoading = false
-                                errorMessage = "Error en el registro: ${task.exception?.message}"
+                                errorMessage = when (task.exception) {
+                                    is FirebaseAuthWeakPasswordException -> "La contraseña es muy débil (mínimo 6 caracteres)."
+                                    is FirebaseAuthInvalidCredentialsException -> "El formato del correo electrónico no es válido."
+                                    is FirebaseAuthUserCollisionException -> "Este correo electrónico ya está registrado."
+                                    else -> "Error en el registro: ${task.exception?.localizedMessage ?: "Inténtalo de nuevo."}"
+                                }
                             }
                         }
                 },
@@ -252,30 +265,31 @@ fun RegisterScreen(
                         .fillMaxSize()
                         .background(
                             brush = Brush.horizontalGradient(
-                                colors = if (isLoading) listOf(Color.Gray, Color.LightGray) else listOf(primaryOrange, Color(0xFFFF8A65))
+                                colors = if (isLoading) listOf(
+                                    Color.Gray,
+                                    Color.LightGray
+                                ) else listOf(primaryOrange, Color(0xFFFF8A65))
                             )
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     if (isLoading) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("Registrarse", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(24.dp))
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
                     }
                 }
-            }
-
-            errorMessage?.let {
-                Text(
-                    text = it,
-                    color = Color.Red,
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -284,7 +298,11 @@ fun RegisterScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), thickness = 0.5.dp, color = Color.LightGray)
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    thickness = 0.5.dp,
+                    color = Color.LightGray
+                )
                 Text(
                     text = " O REGÍSTRATE CON ",
                     fontSize = 12.sp,
@@ -292,15 +310,10 @@ fun RegisterScreen(
                     color = Color.Gray,
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
-                HorizontalDivider(modifier = Modifier.weight(1f), thickness = 0.5.dp, color = Color.LightGray)
-            }
-
-            errorMessage?.let {
-                Text(
-                    text = it,
-                    color = Color.Red,
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(top = 8.dp)
+                HorizontalDivider(
+                    modifier = Modifier.weight(1f),
+                    thickness = 0.5.dp,
+                    color = Color.LightGray
                 )
             }
 
@@ -346,6 +359,7 @@ fun RegisterField(
     placeholder: String,
     leadingIcon: androidx.compose.ui.graphics.vector.ImageVector,
     inputBg: Color,
+    cursorColor: Color,
     modifier: Modifier = Modifier,
     isPassword: Boolean = false
 ) {
@@ -373,7 +387,8 @@ fun RegisterField(
                 unfocusedContainerColor = inputBg,
                 disabledContainerColor = inputBg,
                 focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
+                unfocusedIndicatorColor = Color.Transparent,
+                cursorColor = cursorColor
             ),
             singleLine = true
         )
@@ -383,7 +398,7 @@ fun RegisterField(
 @Preview(showBackground = true)
 @Composable
 fun RegisterScreenPreview() {
-    ExploraColombiaAppTheme() {
+    ExploraColombiaAppTheme {
         RegisterScreen(onRegisterSuccess = {}, onNavigateToLogin = {})
     }
 }

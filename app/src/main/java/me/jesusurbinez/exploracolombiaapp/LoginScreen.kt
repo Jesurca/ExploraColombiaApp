@@ -1,7 +1,5 @@
 package me.jesusurbinez.exploracolombiaapp
 
-import android.app.Activity
-import android.content.ContextWrapper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -28,6 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.auth
 import me.jesusurbinez.exploracolombiaapp.ui.theme.ExploraColombiaAppTheme
 
@@ -37,17 +36,6 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit
 ) {
     val auth = Firebase.auth
-    val context = LocalView.current.context
-
-    // Función para obtener la Activity de forma segura
-    val activity = remember(context) {
-        var currentContext = context
-        while (currentContext is ContextWrapper) {
-            if (currentContext is Activity) break
-            currentContext = currentContext.baseContext
-        }
-        currentContext as? Activity
-    }
 
     //Estados
     var email by remember { mutableStateOf("") }
@@ -238,8 +226,11 @@ fun LoginScreen(
                                     if (task.isSuccessful) {
                                         onLoginSuccess()
                                     } else {
-                                        loginError = task.exception?.localizedMessage
-                                            ?: "Error de autenticación"
+                                        loginError = when (task.exception) {
+                                            is FirebaseAuthInvalidUserException -> "El correo electrónico no está registrado."
+                                            is FirebaseAuthInvalidCredentialsException -> "La contraseña es incorrecta o el correo está mal escrito."
+                                            else -> "Error de red o conexión. Inténtalo de nuevo."
+                                        }
                                     }
                                 }
                         } else {
