@@ -29,6 +29,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import com.google.firebase.auth.userProfileChangeRequest
 import me.jesusurbinez.exploracolombiaapp.ui.theme.ExploraColombiaAppTheme
 
 @Composable
@@ -38,11 +41,14 @@ fun RegisterScreen(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {}
 ) {
+    val auth = Firebase.auth
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var acceptedTerms by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val primaryOrange = Color(0xFFE45D25)
     val lightGrayBg = Color(0xFFF8F9FE)
@@ -99,6 +105,15 @@ fun RegisterScreen(
                     .padding(top = 8.dp)
                     .align(Alignment.Start)
             )
+
+            errorMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -173,10 +188,58 @@ fun RegisterScreen(
                 )
             }
 
+            errorMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { onRegisterSuccess() },
+                onClick = {
+                    if (name.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+                        errorMessage = "Por favor, completa todos los campos"
+                        return@Button
+                    }
+                    if (password != confirmPassword) {
+                        errorMessage = "Las contraseñas no coinciden"
+                        return@Button
+                    }
+                    if (!acceptedTerms) {
+                        errorMessage = "Debes aceptar los términos y condiciones"
+                        return@Button
+                    }
+
+                    isLoading = true
+                    errorMessage = null
+
+                    auth.createUserWithEmailAndPassword(email.trim(), password)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val user = auth.currentUser
+                                val profileUpdates = userProfileChangeRequest {
+                                    displayName = name
+                                }
+                                user?.updateProfile(profileUpdates)
+                                    ?.addOnCompleteListener { profileTask ->
+                                        isLoading = false
+                                        if (profileTask.isSuccessful) {
+                                            onRegisterSuccess()
+                                        } else {
+                                            errorMessage = "Error al actualizar perfil: ${profileTask.exception?.message}"
+                                        }
+                                    }
+                            } else {
+                                isLoading = false
+                                errorMessage = "Error en el registro: ${task.exception?.message}"
+                            }
+                        }
+                },
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp),
@@ -189,17 +252,30 @@ fun RegisterScreen(
                         .fillMaxSize()
                         .background(
                             brush = Brush.horizontalGradient(
-                                colors = listOf(primaryOrange, Color(0xFFFF8A65))
+                                colors = if (isLoading) listOf(Color.Gray, Color.LightGray) else listOf(primaryOrange, Color(0xFFFF8A65))
                             )
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Registrarse", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(24.dp))
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Registrarse", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, modifier = Modifier.size(24.dp))
+                        }
                     }
                 }
+            }
+
+            errorMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -217,6 +293,15 @@ fun RegisterScreen(
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
                 HorizontalDivider(modifier = Modifier.weight(1f), thickness = 0.5.dp, color = Color.LightGray)
+            }
+
+            errorMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))

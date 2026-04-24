@@ -1,6 +1,7 @@
 package me.jesusurbinez.exploracolombiaapp
 
 import android.app.Activity
+import android.content.ContextWrapper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -36,13 +37,23 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit
 ) {
     val auth = Firebase.auth
-    val activity = LocalView.current.context as Activity
+    val context = LocalView.current.context
+
+    // Función para obtener la Activity de forma segura
+    val activity = remember(context) {
+        var currentContext = context
+        while (currentContext is ContextWrapper) {
+            if (currentContext is Activity) break
+            currentContext = currentContext.baseContext
+        }
+        currentContext as? Activity
+    }
 
     //Estados
-
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var loginError by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     val primaryOrange = Color(0xFFE45D25)
     val lightGrayBg = Color(0xFFF8F9FE)
@@ -65,7 +76,6 @@ fun LoginScreen(
                     .height(280.dp)
                     .clip(RoundedCornerShape(bottomStart = 60.dp, bottomEnd = 60.dp))
             ) {
-                // Placeholder for the landscape image
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -192,13 +202,6 @@ fun LoginScreen(
                             tint = Color.Gray
                         )
                     },
-                    trailingIcon = {
-                        Icon(
-                            Icons.Default.Home,
-                            contentDescription = null,
-                            tint = Color.Gray
-                        )
-                    },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     colors = TextFieldDefaults.colors(
@@ -214,30 +217,36 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 if (loginError.isNotEmpty()) {
-
                     Text(
                         text = loginError,
                         color = Color.Red,
+                        fontSize = 13.sp,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 8.dp)
+                            .padding(bottom = 12.dp)
                     )
                 }
+
                 Button(
                     onClick = {
-                        if (email.isNotEmpty() && password.isNotEmpty()) {
-                            auth.signInWithEmailAndPassword(email, password)
-                                .addOnCompleteListener(activity) { task ->
+                        if (email.isNotBlank() && password.isNotBlank()) {
+                            isLoading = true
+                            loginError = ""
+                            auth.signInWithEmailAndPassword(email.trim(), password)
+                                .addOnCompleteListener { task ->
+                                    isLoading = false
                                     if (task.isSuccessful) {
                                         onLoginSuccess()
                                     } else {
-                                        loginError = "Error: Usuario o contraseña incorrectos"
+                                        loginError = task.exception?.localizedMessage
+                                            ?: "Error de autenticación"
                                     }
                                 }
                         } else {
                             loginError = "Por favor, completa todos los campos"
                         }
                     },
+                    enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -250,19 +259,33 @@ fun LoginScreen(
                             .fillMaxSize()
                             .background(
                                 brush = Brush.horizontalGradient(
-                                    colors = listOf(primaryOrange, Color(0xFFFF8A65))
+                                    colors = if (isLoading) listOf(
+                                        Color.Gray,
+                                        Color.LightGray
+                                    ) else listOf(primaryOrange, Color(0xFFFF8A65))
                                 )
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Iniciar Sesión", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp)
                             )
+                        } else {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    "Iniciar Sesión",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
                         }
                     }
                 }
