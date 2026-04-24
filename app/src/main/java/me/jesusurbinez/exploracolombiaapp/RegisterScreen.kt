@@ -208,16 +208,10 @@ fun RegisterScreen(
 
             Button(
                 onClick = {
-                    if (name.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
-                        errorMessage = "Por favor, completa todos los campos"
-                        return@Button
-                    }
-                    if (password != confirmPassword) {
-                        errorMessage = "Las contraseñas no coinciden"
-                        return@Button
-                    }
-                    if (!acceptedTerms) {
-                        errorMessage = "Debes aceptar los términos y condiciones"
+                    val validation = Validations.validateRegister(name, email, password, confirmPassword, acceptedTerms)
+                    
+                    if (!validation.isValid) {
+                        errorMessage = validation.message
                         return@Button
                     }
 

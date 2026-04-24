@@ -217,25 +217,33 @@ fun LoginScreen(
 
                 Button(
                     onClick = {
-                        if (email.isNotBlank() && password.isNotBlank()) {
-                            isLoading = true
-                            loginError = ""
-                            auth.signInWithEmailAndPassword(email.trim(), password)
-                                .addOnCompleteListener { task ->
-                                    isLoading = false
-                                    if (task.isSuccessful) {
-                                        onLoginSuccess()
-                                    } else {
-                                        loginError = when (task.exception) {
-                                            is FirebaseAuthInvalidUserException -> "El correo electrónico no está registrado."
-                                            is FirebaseAuthInvalidCredentialsException -> "La contraseña es incorrecta o el correo está mal escrito."
-                                            else -> "Error de red o conexión. Inténtalo de nuevo."
-                                        }
+                        val emailRes = Validations.isValidEmail(email)
+                        val passwordRes = Validations.isValidPassword(password)
+
+                        if (!emailRes.isValid) {
+                            loginError = emailRes.message ?: "Correo inválido"
+                            return@Button
+                        }
+                        if (!passwordRes.isValid) {
+                            loginError = passwordRes.message ?: "Contraseña inválida"
+                            return@Button
+                        }
+
+                        isLoading = true
+                        loginError = ""
+                        auth.signInWithEmailAndPassword(email.trim(), password)
+                            .addOnCompleteListener { task ->
+                                isLoading = false
+                                if (task.isSuccessful) {
+                                    onLoginSuccess()
+                                } else {
+                                    loginError = when (task.exception) {
+                                        is FirebaseAuthInvalidUserException -> "El correo electrónico no está registrado."
+                                        is FirebaseAuthInvalidCredentialsException -> "La contraseña es incorrecta o el correo está mal escrito."
+                                        else -> "Error de red o conexión. Inténtalo de nuevo."
                                     }
                                 }
-                        } else {
-                            loginError = "Por favor, completa todos los campos"
-                        }
+                            }
                     },
                     enabled = !isLoading,
                     modifier = Modifier
