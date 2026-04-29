@@ -28,6 +28,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.auth
+import me.jesusurbinez.exploracolombiaapp.ui.elements.Validations
 import me.jesusurbinez.exploracolombiaapp.ui.theme.ExploraColombiaAppTheme
 
 @Composable

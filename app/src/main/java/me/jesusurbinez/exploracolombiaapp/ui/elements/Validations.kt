@@ -1,4 +1,4 @@
-package me.jesusurbinez.exploracolombiaapp
+package me.jesusurbinez.exploracolombiaapp.ui.elements
 
 object Validations {
     fun isValidEmail(email: String): ValidationResult {
