@@ -68,4 +68,6 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     //Aut
     implementation(libs.firebase.auth)
+    //View Models
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.1")
 }

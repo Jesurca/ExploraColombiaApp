@@ -1,4 +1,4 @@
-package me.jesusurbinez.exploracolombiaapp.ui.viewmodels
+package me.jesusurbinez.exploracolombiaapp
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -9,7 +9,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import me.jesusurbinez.exploracolombiaapp.LoginScreen
 import me.jesusurbinez.exploracolombiaapp.ui.elements.MainScreen
 import me.jesusurbinez.exploracolombiaapp.ui.elements.RegisterScreen
 import me.jesusurbinez.exploracolombiaapp.ui.elements.AddPlaceScreen

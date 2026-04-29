@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import me.jesusurbinez.exploracolombiaapp.ui.theme.ExploraColombiaAppTheme
-import me.jesusurbinez.exploracolombiaapp.ui.viewmodels.AppNavigation
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
