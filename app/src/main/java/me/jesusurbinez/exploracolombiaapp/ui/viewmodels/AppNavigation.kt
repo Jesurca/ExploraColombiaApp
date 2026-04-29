@@ -75,3 +75,4 @@ fun AppNavigation(
         }
     }
 }
+//En este comentario damos la indicacion de que es el Diseño de add places (trabajo en clase)
