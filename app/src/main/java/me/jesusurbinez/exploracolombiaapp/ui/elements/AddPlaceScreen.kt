@@ -19,14 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import me.jesusurbinez.exploracolombiaapp.ui.viewmodels.AddPlaceViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddPlaceScreen(onBackClick: () -> Unit) {
-    var placeName by remember { mutableStateOf("") }
-    var department by remember { mutableStateOf("") }
-    var city by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+fun AddPlaceScreen(onBackClick: () -> Unit, addPlaceViewModel: AddPlaceViewModel= AddPlaceViewModel()) {
+
 
     val primaryOrange = Color(0xFFE45D25)
     val secondaryOrange = Color(0xFFD1451B)
@@ -105,32 +103,32 @@ fun AddPlaceScreen(onBackClick: () -> Unit) {
             Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 PlaceInputField(
                     label = "NOMBRE DEL LUGAR",
-                    value = placeName,
-                    onValueChange = { placeName = it },
+                    value = addPlaceViewModel.placeName,
+                    onValueChange = { addPlaceViewModel.placeName = it },
                     placeholder = "Ej: Cascada del Fin del Mundo",
                     inputBg = inputBg
                 )
 
                 PlaceInputField(
                     label = "DEPARTAMENTO",
-                    value = department,
-                    onValueChange = { department = it },
+                    value = addPlaceViewModel.department,
+                    onValueChange = { addPlaceViewModel.department= it },
                     placeholder = "Ej: Putumayo",
                     inputBg = inputBg
                 )
 
                 PlaceInputField(
                     label = "CIUDAD",
-                    value = city,
-                    onValueChange = { city = it },
+                    value = addPlaceViewModel.city,
+                    onValueChange = { addPlaceViewModel.city = it },
                     placeholder = "Ej: Mocoa",
                     inputBg = inputBg
                 )
 
                 PlaceInputField(
                     label = "DESCRIPCIÓN",
-                    value = description,
-                    onValueChange = { description = it },
+                    value = addPlaceViewModel.description,
+                    onValueChange = { addPlaceViewModel.description = it },
                     placeholder = "Cuéntanos por qué este lugar es especial...",
                     inputBg = inputBg,
                     singleLine = false,
