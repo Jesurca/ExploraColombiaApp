@@ -19,12 +19,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import me.jesusurbinez.exploracolombiaapp.ui.viewmodels.AddPlaceViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddPlaceScreen(onBackClick: () -> Unit, addPlaceViewModel: AddPlaceViewModel= AddPlaceViewModel()) {
-
+fun AddPlaceScreen(
+    onBackClick: () -> Unit,
+    addPlaceViewModel: AddPlaceViewModel = viewModel()
+) {
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val primaryOrange = Color(0xFFE45D25)
     val secondaryOrange = Color(0xFFD1451B)
@@ -112,7 +116,7 @@ fun AddPlaceScreen(onBackClick: () -> Unit, addPlaceViewModel: AddPlaceViewModel
                 PlaceInputField(
                     label = "DEPARTAMENTO",
                     value = addPlaceViewModel.department,
-                    onValueChange = { addPlaceViewModel.department= it },
+                    onValueChange = { addPlaceViewModel.department = it },
                     placeholder = "Ej: Putumayo",
                     inputBg = inputBg
                 )
@@ -136,42 +140,66 @@ fun AddPlaceScreen(onBackClick: () -> Unit, addPlaceViewModel: AddPlaceViewModel
                 )
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            errorMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Botón Publicar
-            Button(
-                onClick = { /* Lógica para guardar el lugar */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
-                shape = RoundedCornerShape(30.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues()
-            ) {
-                Box(
+            if (addPlaceViewModel.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    color = primaryOrange
+                )
+            } else {
+                Button(
+                    onClick = {
+                        addPlaceViewModel.onPublishClick(
+                            onSuccess = { onBackClick() },
+                            onError = { errorMessage = it }
+                        )
+                    },
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(primaryOrange, secondaryOrange)
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    shape = RoundedCornerShape(30.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    contentPadding = PaddingValues()
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Send,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Publicar",
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(primaryOrange, secondaryOrange)
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Send,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = "Publicar",
+                                color = Color.White,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
